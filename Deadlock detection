@@ -1,0 +1,93 @@
+import java.util.*;
+
+class DeadlockDetector {
+    private int processes;
+    private int resources;
+
+    private int[][] allocationMatrix;
+    private int[][] requestMatrix;
+
+    public DeadlockDetector(int processes, int resources) {
+        this.processes = processes;
+        this.resources = resources;
+
+        allocationMatrix = new int[processes][resources];
+        requestMatrix = new int[processes][resources];
+    }
+
+    public void setAllocationMatrix(int[][] allocation) {
+        allocationMatrix = Arrays.copyOf(allocation, processes);
+    }
+
+    public void setRequestMatrix(int[][] request) {
+        requestMatrix = Arrays.copyOf(request, processes);
+    }
+
+    public boolean isDeadlocked() {
+        Set<Integer> visited = new HashSet<>();
+        Stack<Integer> stack = new Stack<>();
+
+        for (int process = 0; process < processes; process++) {
+            if (!visited.contains(process)) {
+                if (isCyclic(process, visited, stack)) {
+                    return true; // Deadlock detected
+                }
+            }
+        }
+
+        return false; // No deadlock detected
+    }
+
+    private boolean isCyclic(int process, Set<Integer> visited, Stack<Integer> stack) {
+        visited.add(process);
+        stack.push(process);
+
+        for (int resource = 0; resource < resources; resource++) {
+            int request = requestMatrix[process][resource];
+            int allocation = allocationMatrix[process][resource];
+
+            if (request > 0 && (allocation + request) > 0) {
+                int nextProcess = resource;
+                if (!visited.contains(nextProcess)) {
+                    if (isCyclic(nextProcess, visited, stack)) {
+                        return true; // Deadlock detected
+                    }
+                } else if (stack.contains(nextProcess)) {
+                    return true; // Deadlock detected (cycle found)
+                }
+            }
+        }
+
+        stack.pop();
+        return false;
+    }
+}
+
+public class DeadlockDetectionExample {
+    public static void main(String[] args) {
+        DeadlockDetector detector = new DeadlockDetector(4, 3);
+
+        int[][] allocationMatrix = {
+            {0, 1, 0},
+            {2, 0, 0},
+            {3, 0, 2},
+            {2, 1, 1}
+        };
+
+        int[][] requestMatrix = {
+            {0, 0, 0},
+            {2, 0, 2},
+            {0, 0, 1},
+            {1, 0, 0}
+        };
+
+        detector.setAllocationMatrix(allocationMatrix);
+        detector.setRequestMatrix(requestMatrix);
+
+        if (detector.isDeadlocked()) {
+            System.out.println("The system is deadlocked.");
+        } else {
+            System.out.println("The system is not deadlocked.");
+        }
+    }
+}
