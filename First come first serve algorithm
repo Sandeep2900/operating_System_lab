@@ -1,0 +1,58 @@
+import java.util.ArrayDeque;
+import java.util.Queue;
+
+class Process {
+    String name;
+    int burstTime;
+
+    public Process(String name, int burstTime) {
+        this.name = name;
+        this.burstTime = burstTime;
+    }
+}
+
+public class RoundRobinScheduler {
+    public static void main(String[] args) {
+        // Create an array of processes
+        Process[] processes = {
+            new Process("P1", 10),
+            new Process("P2", 5),
+            new Process("P3", 8),
+            // Add more processes as needed
+        };
+
+        // Set time quantum (time slice) in milliseconds
+        int timeQuantum = 3;
+
+        // Run the Round Robin scheduler
+        roundRobin(processes, timeQuantum);
+    }
+
+    public static void roundRobin(Process[] processes, int timeQuantum) {
+        Queue<Process> queue = new ArrayDeque<>();
+        int currentTime = 0;
+
+        // Add processes to the queue
+        for (Process process : processes) {
+            queue.add(process);
+        }
+
+        // Run until all processes are completed
+        while (!queue.isEmpty()) {
+            Process currentProcess = queue.poll();
+
+            // Execute the process for the time quantum or until it completes
+            int remainingTime = Math.min(currentProcess.burstTime, timeQuantum);
+            currentTime += remainingTime;
+            currentProcess.burstTime -= remainingTime;
+
+            // Print the execution details
+            System.out.println("Time " + currentTime + ": " + currentProcess.name + " executed.");
+
+            // Add the process back to the queue if it's not completed
+            if (currentProcess.burstTime > 0) {
+                queue.add(currentProcess);
+            }
+        }
+    }
+}
